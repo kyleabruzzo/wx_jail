@@ -16,9 +16,8 @@ AddEventHandler("esx:playerLoaded", function()
 	Citizen.Wait(15000)
 	ESX.TriggerServerCallback("wx_jail:retrieveJailTime", function(inJail, time)
 		if inJail then
-
-			jailTime = jailTime
-			SetEntityCoords(PlayerPedId(), wx.Locations.JailEnter[ math.random( #wx.Locations.JailEnter ) ])
+			jailTime = time --Time display quickfix :D
+			SetEntityCoords(PlayerPedId(), wx.Locations.JailEnter[math.random(#wx.Locations.JailEnter)])
 
 			lib.notify({
 				title = Locale["JailTitle"],
@@ -50,24 +49,24 @@ local options = {
 		distance = 2,
 		icon = 'fa-solid fa-handcuffs',
 		label = Locale["SendToJail"],
-		canInteract = function ()
+		canInteract = function()
 			if wx.Jobs[PlayerData["job"].name] then return true end
-			if IsPedDeadOrDying(PlayerPedId(),false) or IsPedFatallyInjured(PlayerPedId()) then return false end
+			if IsPedDeadOrDying(PlayerPedId(), false) or IsPedFatallyInjured(PlayerPedId()) then return false end
 			return false
 		end,
-		onSelect = function (data)
+		onSelect = function(data)
 			local id = GetPlayerServerId(NetworkGetPlayerIndexFromPed(data.entity))
 			local jail = lib.inputDialog('Vězení', {
-				{type = 'input', label = Locale["pID"], disabled = true, placeholder = id, icon = 'list-ol',},
-				{type = 'number', label = Locale["pTime"], description = Locale["pTimeDesc"]:format(wx.MinuteToYears), icon = 'clock', placeholder = "10"},
-				{type = 'input', label = Locale["pReason"], description = Locale["pReasonDesc"], icon = 'font', placeholder = "Jízda bez ŘP"},
+				{ type = 'input',  label = Locale["pID"],     disabled = true,                                            placeholder = id, icon = 'list-ol', },
+				{ type = 'number', label = Locale["pTime"],   description = Locale["pTimeDesc"]:format(wx.MinuteToYears), icon = 'clock',   placeholder = "10" },
+				{ type = 'input',  label = Locale["pReason"], description = Locale["pReasonDesc"],                        icon = 'font',    placeholder = "Jízda bez ŘP" },
 			})
 			if jail then
 				if jail[2] <= 100 then
-					TriggerServerEvent('wx_jail:sendToJail',id,jail[2],jail[3])
+					TriggerServerEvent('wx_jail:sendToJail', id, jail[2], jail[3])
 					lib.notify({
 						title = Locale["Success"],
-						description =  Locale["Jailed"]:format(jail[2],jail[3]),
+						description = Locale["Jailed"]:format(jail[2], jail[3]),
 						type = 'info',
 						position = 'top'
 					})
@@ -102,68 +101,69 @@ if wx.ManualJail then
 				label = Locale["JailTarget"],
 				icon = "fa-solid fa-handcuffs",
 				distance = 1.5,
-				canInteract = function ()
+				canInteract = function()
 					if wx.Jobs[PlayerData["job"].name] then return true end
 					return false
 				end,
-				onSelect = function ()
+				onSelect = function()
 					local pl = {}
 					local nearby = lib.getNearbyPlayers(GetEntityCoords(PlayerPedId()), 25.0, true)
 					if json.encode(nearby) == '[]' then
-						table.insert(pl,{
+						table.insert(pl, {
 							title = Locale["Nearby"],
 							icon = 'triangle-exclamation'
 						})
 					else
-						for k,v in pairs(nearby) do
-							local name = lib.callback.await('wx_jail:getCharName',GetPlayerServerId(v.id))
+						for k, v in pairs(nearby) do
+							local name = lib.callback.await('wx_jail:getCharName', GetPlayerServerId(v.id))
 							print(GetPlayerServerId(v.id))
-							table.insert(pl,{
-								title = ("[%s] %s"):format(GetPlayerServerId(v.id),GetPlayerName(v.id)),
+							table.insert(pl, {
+								title = ("[%s] %s"):format(GetPlayerServerId(v.id), GetPlayerName(v.id)),
 								icon = 'user',
-								onSelect = function ()
+								onSelect = function()
 									local jail = lib.inputDialog(Locale["JailTitle"], {
-										{type = 'input', label = Locale["pID"], disabled = true, placeholder = GetPlayerServerId(v.id), icon = 'list-ol',},
-										{type = 'number', label = Locale["pTime"], description = Locale["pTimeDesc"]:format(wx.MinuteToYears), icon = 'clock', placeholder = "10"},
-										{type = 'input', label = Locale["pReason"], description = Locale["pReasonDesc"], icon = 'font', placeholder = "Jízda bez ŘP"},
+										{ type = 'input',  label = Locale["pID"],     disabled = true,                                            placeholder = GetPlayerServerId(v.id), icon = 'list-ol', },
+										{ type = 'number', label = Locale["pTime"],   description = Locale["pTimeDesc"]:format(wx.MinuteToYears), icon = 'clock',                        placeholder = "10" },
+										{ type = 'input',  label = Locale["pReason"], description = Locale["pReasonDesc"],                        icon = 'font',                         placeholder = "Jízda bez ŘP" },
 									})
 									if jail then
 										if jail[2] <= wx.MaxTime then
-												local alert = lib.alertDialog({
-													header = Locale["Confirmation"],
-													content = Locale["ConfirmationDesc"]:format(name,jail[2]*wx.MinuteToYears..' roky',jail[3]),
-													centered = true,
-													cancel = true,
-													labels = {
-														confirm = Locale["Confirm"],
-														cancel = Locale["Cancel"]
-													}
-												})
-												if alert == 'confirm' then
-													TriggerServerEvent('wx_jail:sendToJail',GetPlayerServerId(v.id),jail[2],jail[3])
-													lib.notify({
-														title = Locale["Success"],
-														description = Locale["Jailed"]:format(jail[2],jail[3]),
-														type = 'info',
-														position = 'top'
-													})
-												end
-											else
+											local alert = lib.alertDialog({
+												header = Locale["Confirmation"],
+												content = Locale["ConfirmationDesc"]:format(name,
+													jail[2] * wx.MinuteToYears .. ' roky', jail[3]),
+												centered = true,
+												cancel = true,
+												labels = {
+													confirm = Locale["Confirm"],
+													cancel = Locale["Cancel"]
+												}
+											})
+											if alert == 'confirm' then
+												TriggerServerEvent('wx_jail:sendToJail', GetPlayerServerId(v.id), jail
+													[2], jail[3])
 												lib.notify({
-													title = Locale["Error"],
-													description = Locale["MaxTime"]:format(wx.MaxTime),
-													type = 'error',
+													title = Locale["Success"],
+													description = Locale["Jailed"]:format(jail[2], jail[3]),
+													type = 'info',
 													position = 'top'
 												})
-												
 											end
 										else
 											lib.notify({
-												title = Locale["Cancelled"],
-												type = 'info',
+												title = Locale["Error"],
+												description = Locale["MaxTime"]:format(wx.MaxTime),
+												type = 'error',
 												position = 'top'
 											})
 										end
+									else
+										lib.notify({
+											title = Locale["Cancelled"],
+											type = 'info',
+											position = 'top'
+										})
+									end
 								end
 							})
 							lib.registerContext({
@@ -196,24 +196,24 @@ function UnJail()
 	})
 end
 
-function DrawTxt(x,y, width, height, scale, text, r, g, b, a, outline)
+function DrawTxt(x, y, width, height, scale, text, r, g, b, a, outline)
 	SetTextFont(0)
 	SetTextScale(scale, scale)
 	SetTextColour(r, g, b, a)
-	SetTextDropshadow(0, 0, 0, 0,255)
+	SetTextDropshadow(0, 0, 0, 0, 255)
 	SetTextDropShadow()
 	if outline then
-        SetTextOutline()
-    end
+		SetTextOutline()
+	end
 	BeginTextCommandDisplayText('STRING')
 	AddTextComponentSubstringPlayerName(text)
 	EndTextCommandDisplayText(x - width / 2, y - height / 2 + 0.005)
 end
 
 function CheckTeleport()
-	if GetDistanceBetweenCoords(wx.Locations.JailCenter,GetEntityCoords(PlayerPedId())) > wx.Radius+0.0 then
-		if GetDistanceBetweenCoords(GetEntityCoords(PlayerPedId()),vector3(402.9156, -996.7591, -99.0002)) > 10.0 then
-			SetEntityCoords(PlayerPedId(), wx.Locations.JailEnter[ math.random( #wx.Locations.JailEnter ) ])
+	if GetDistanceBetweenCoords(wx.Locations.JailCenter, GetEntityCoords(PlayerPedId())) > wx.Radius + 0.0 then
+		if GetDistanceBetweenCoords(GetEntityCoords(PlayerPedId()), vector3(402.9156, -996.7591, -99.0002)) > 10.0 then
+			SetEntityCoords(PlayerPedId(), wx.Locations.JailEnter[math.random(#wx.Locations.JailEnter)])
 			if wx.BanOnLeave then
 				TriggerServerEvent('wx_jail:ban')
 			end
@@ -230,26 +230,24 @@ function CheckTeleport()
 end
 
 if wx.NoShooting then
-	Citizen.CreateThread(function ()
+	Citizen.CreateThread(function()
 		while true do
 			Wait(0)
 			local pcoords = GetEntityCoords(PlayerPedId())
-			if GetDistanceBetweenCoords(pcoords,wx.Locations.JailCenter) < wx.Radius+0.0 and not wx.Jobs[PlayerData.job.name] then
-				DisablePlayerFiring(PlayerPedId(),true)
-				DisableControlAction(0,140,true)
-				DisableControlAction(0,141,true)
+			if GetDistanceBetweenCoords(pcoords, wx.Locations.JailCenter) < wx.Radius + 0.0 and not wx.Jobs[PlayerData.job.name] then
+				DisablePlayerFiring(PlayerPedId(), true)
+				DisableControlAction(0, 140, true)
+				DisableControlAction(0, 141, true)
 			else
-				EnableControlAction(0,140,true)
-				EnableControlAction(0,141,true)
+				EnableControlAction(0, 140, true)
+				EnableControlAction(0, 141, true)
 			end
 		end
 	end)
 end
 
 function TimeLeft()
-
 	Citizen.CreateThread(function()
-
 		while jailTime > 0 do
 			jailTime = jailTime - 1
 			if jailTime == 0 then
@@ -257,20 +255,43 @@ function TimeLeft()
 				TriggerServerEvent("wx_jail:updateJailTime", 0)
 			end
 			TriggerServerEvent("wx_jail:updateJailTime", jailTime)
-			Citizen.Wait(60000*wx.MinuteToYears)
+			Citizen.Wait(60000 * wx.MinuteToYears)
 		end
-
 	end)
-	Citizen.CreateThread(function ()
-		while jailTime > 0 do Wait(0)
+	Citizen.CreateThread(function()
+		while jailTime > 0 do
+			Wait(0)
 			if wx.AntiLeave then CheckTeleport() end
 			if jailTime == 1 then
-				DrawTxt(1.0, 1.45, 1.0, 1.0, 0.4, ("<font face = 'BBN'><font color = '#FFFFFF'>"..Locale["YearR"].." <font color = '#FFCD00'>"):format(jailTime), 255, 255, 255, 255)
+				DrawTxt(1.0, 1.45, 1.0, 1.0, 0.4,
+					("<font face = 'BBN'><font color = '#FFFFFF'>" .. Locale["YearR"] .. " <font color = '#FFCD00'>")
+					:format(jailTime), 255, 255, 255, 255)
 			elseif jailTime > 5 then
-				DrawTxt(1.0, 1.45, 1.0, 1.0, 0.4, ("<font face = 'BBN'><font color = '#FFFFFF'>"..Locale["YearsR"].." <font color = '#FFCD00'>"):format(jailTime), 255, 255, 255, 255)
+				DrawTxt(1.0, 1.45, 1.0, 1.0, 0.4,
+					("<font face = 'BBN'><font color = '#FFFFFF'>" .. Locale["YearsR"] .. " <font color = '#FFCD00'>")
+					:format(jailTime), 255, 255, 255, 255)
 			end
-
 		end
 	end)
-
 end
+
+AddEventHandler('onResourceStart', function(resourceName)
+	if (GetCurrentResourceName() ~= resourceName) then
+		return
+	end
+	Citizen.Wait(2000)
+	ESX.TriggerServerCallback("wx_jail:retrieveJailTime", function(inJail, time)
+		if inJail then
+			jailTime = time --Time display quickfix :D
+			SetEntityCoords(PlayerPedId(), wx.Locations.JailEnter[math.random(#wx.Locations.JailEnter)])
+
+			lib.notify({
+				title = Locale["JailTitle"],
+				description = Locale["Disconnected"],
+				type = 'error',
+				position = 'top'
+			})
+			TimeLeft()
+		end
+	end)
+end)
